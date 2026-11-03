@@ -48,33 +48,34 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
   };
 
   return (
-    // Background overlay (dims the screen behind the modal)
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    // Background overlay (dims the screen with high-end glassmorphism)
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
       
-      {/* The actual modal box */}
-      <div className="bg-white rounded-xl p-6 w-[400px] shadow-2xl">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
-          Upload Research Paper
+      {/* The actual modal box in Dark Slate & Cyan/Green theme */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+        <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2">
+          <span>📁</span> Upload Document
         </h2>
+        <p className="text-xs text-slate-400 mb-6">Upload your academic PDF to initialize spatial AI processing.</p>
         
-        {/* File input field styled with Tailwind */}
+        {/* File input field styled with Cyan & Green accents */}
         <input 
           type="file" 
           accept=".pdf" 
           onChange={handleFileChange}
-          className="block w-full text-sm text-gray-600 mb-6
-            file:mr-4 file:py-2.5 file:px-4
-            file:rounded-lg file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-50 file:text-blue-700
-            hover:file:bg-blue-100 transition-colors"
+          className="block w-full text-xs text-slate-300 mb-6
+            file:mr-4 file:py-3 file:px-5
+            file:rounded-xl file:border-0
+            file:text-xs file:font-extrabold
+            file:bg-cyan-500/10 file:text-cyan-400
+            hover:file:bg-cyan-500/20 transition-all cursor-pointer border border-slate-800 rounded-2xl bg-slate-950 p-2"
         />
         
         {/* Action buttons */}
         <div className="flex justify-end gap-3">
           <button 
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            className="px-5 py-2.5 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-all font-bold text-xs border border-slate-700"
             disabled={isUploading}
           >
             Cancel
@@ -83,9 +84,10 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
           <button 
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium flex items-center gap-2"
+            className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 rounded-xl hover:from-cyan-400 hover:to-emerald-400 transition-all disabled:opacity-40 font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20"
           >
-            {isUploading ? "Processing PDF..." : "Upload & Analyze"}
+            {isUploading ? <span className="animate-spin">⏳</span> : <span>🚀</span>}
+            <span>{isUploading ? "Processing PDF..." : "Upload & Analyze"}</span>
           </button>
         </div>
       </div>
