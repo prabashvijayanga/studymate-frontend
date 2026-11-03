@@ -45,7 +45,7 @@ export default function StudyModeModal({
   const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
   const [selectionCurrent, setSelectionCurrent] = useState({ x: 0, y: 0 });
   
-  // --- RESIZABLE PANEL STATES ---
+  // --- SAFE RESIZABLE PANEL STATES ---
   const [desktopChatWidth, setDesktopChatWidth] = useState<number>(550);
   const [mobileChatHeight, setMobileChatHeight] = useState<number>(350);
   const [isResizingDesktop, setIsResizingDesktop] = useState(false);
@@ -53,19 +53,7 @@ export default function StudyModeModal({
 
   const imgRef = useRef<HTMLImageElement>(null);
 
-  if (!selectedPage) return null;
-
-  // --- DESKTOP RESIZING HANDLERS ---
-  const startResizingDesktop = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizingDesktop(true);
-  };
-
-  // --- MOBILE RESIZING HANDLERS ---
-  const startResizingMobile = () => {
-    setIsResizingMobile(true);
-  };
-
+  // Safe window dimensions check to prevent hydration errors
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizingDesktop) {
@@ -115,6 +103,8 @@ export default function StudyModeModal({
       window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isResizingDesktop, isResizingMobile]);
+
+  if (!selectedPage) return null;
 
   // --- MAGIC WAND MOUSE LOGIC ---
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -236,7 +226,7 @@ export default function StudyModeModal({
 
       {/* --- DESKTOP RESIZE HANDLE --- */}
       <div 
-        onMouseDown={startResizingDesktop}
+        onMouseDown={(e) => { e.preventDefault(); setIsResizingDesktop(true); }}
         className="hidden lg:flex w-2 bg-slate-800 hover:bg-cyan-500/55 cursor-col-resize items-center justify-center transition-colors z-30"
         title="Drag to resize chat panel"
       >
@@ -246,20 +236,19 @@ export default function StudyModeModal({
       {/* Right Side: Fully Responsive & Resizable AI Chat Panel */}
       <div 
         className="lg:h-full bg-slate-900 shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none overflow-hidden border-t lg:border-t-0 border-slate-800 z-30 transition-all duration-75"
+        style={{
+          width: '100%',
+          ...(typeof window !== 'undefined' && window.innerWidth >= 1024 
+            ? { width: `${desktopChatWidth}px` } 
+            : { height: `${mobileChatHeight}px` }
+          )
+        }}
       >
-        <div 
-          className="flex flex-col h-full w-full bg-slate-900"
-          style={{
-            ...(typeof window !== 'undefined' && window.innerWidth >= 1024 
-              ? { width: `${desktopChatWidth}px`, height: '100%' } 
-              : { height: `${mobileChatHeight}px`, width: '100%' }
-            )
-          }}
-        >
+        <div className="flex flex-col h-full w-full bg-slate-900">
           {/* --- MOBILE RESIZE HANDLE --- */}
           <div 
-            onMouseDown={startResizingMobile}
-            onTouchStart={startResizingMobile}
+            onMouseDown={() => setIsResizingMobile(true)}
+            onTouchStart={() => setIsResizingMobile(true)}
             className="lg:hidden w-full h-4 bg-slate-950 flex items-center justify-center cursor-row-resize touch-none border-b border-slate-800"
             title="Drag up or down to resize chat"
           >
