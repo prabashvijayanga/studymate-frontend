@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface GraphNode {
   id: string;
@@ -47,7 +48,7 @@ export default function ConceptWebModal({ isOpen, onClose, nodes, edges, onDownl
           <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
             <span className="text-3xl">🕸️</span> AI Concept Web & Smart Notes
           </h2>
-          <p className="text-xs text-slate-400 mt-1">Explore interconnected knowledge nodes and synthesized study notes.</p>
+          <p className="text-xs text-slate-400 mt-1">Explore interconnected knowledge nodes and structured study notes.</p>
         </div>
         
         {/* Action Buttons */}
@@ -79,21 +80,26 @@ export default function ConceptWebModal({ isOpen, onClose, nodes, edges, onDownl
                 key={node.id}
                 onMouseEnter={() => setHoveredNodeId(node.id)}
                 onMouseLeave={() => setHoveredNodeId(null)}
-                className={`w-[360px] bg-slate-900 border rounded-3xl p-6 shadow-2xl transition-all duration-300 transform flex flex-col justify-between
+                className={`w-[400px] bg-slate-900 border rounded-3xl p-6 shadow-2xl transition-all duration-300 transform flex flex-col justify-between
                   ${connected ? 'scale-100 opacity-100 border-slate-800 shadow-cyan-500/5' : 'scale-95 opacity-30 blur-[2px]'}
                   ${hoveredNodeId === node.id ? 'scale-105 z-10 border-cyan-500 ring-2 ring-emerald-400/50 shadow-emerald-500/10' : 'z-0'}
                 `}
               >
                 <div>
                   {/* Node Title Header */}
-                  <div className="text-base font-black text-white mb-3 border-b border-slate-800 pb-2.5 flex items-center justify-between">
+                  <div className="text-base font-black text-white mb-4 border-b border-slate-800 pb-3 flex items-center justify-between">
                     <span>{node.label}</span>
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
                   </div>
                   
-                  {/* Markdown Memorable Note */}
-                  <div className="prose prose-sm prose-invert text-slate-300 prose-strong:text-cyan-400 text-xs leading-relaxed mb-4">
-                    <ReactMarkdown>{node.memorable_note}</ReactMarkdown>
+                  {/* Highly Readable Clean Markdown Typography for Card Content */}
+                  <div className="prose prose-sm prose-invert text-slate-300 text-xs leading-relaxed mb-4 
+                    prose-p:mb-3 prose-p:leading-relaxed 
+                    prose-strong:text-cyan-400 prose-strong:font-bold 
+                    prose-ul:my-2 prose-ul:pl-4 prose-li:mb-1.5 prose-li:marker:text-cyan-400">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {node.memorable_note}
+                    </ReactMarkdown>
                   </div>
                 </div>
 
