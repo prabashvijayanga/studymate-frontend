@@ -77,6 +77,19 @@ export default function CanvasBoard() {
     setIsSelecting(false);
   }, [selectedPage?.id]);
 
+  // --- NAVIGATION HANDLERS FOR PREV / NEXT PAGES ---
+  const handlePrevPage = () => {
+    if (selectedIndex > 0) {
+      setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === selectedIndex - 1 })));
+    }
+  };
+
+  const handleNextPage = () => {
+    if (selectedIndex < pages.length - 1) {
+      setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === selectedIndex + 1 })));
+    }
+  };
+
   // Handle direct Chat API requests
   const handleSendMessage = async () => {
     if (!chatInput.trim() || !selectedPage) return;
@@ -348,14 +361,43 @@ export default function CanvasBoard() {
         </div>
       )}
 
-      {/* --- FULL-SCREEN INTERACTIVE STUDY MODE (MAGIC WAND) --- */}
+      {/* --- FULL-SCREEN INTERACTIVE STUDY MODE (MAGIC WAND & PREV/NEXT NAVIGATION) --- */}
       {selectedPage && (
         <div className="fixed inset-0 z-50 flex bg-gray-900/95 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
           <div className="flex-1 h-full relative flex flex-col">
+            
+            {/* Top Bar with Back to Grid & Previous/Next Page Navigation */}
             <div className="flex justify-between items-center p-6 absolute top-0 w-full z-10 bg-gradient-to-b from-gray-900/80 to-transparent">
-              <button onClick={() => setPages(pgs => pgs.map(p => ({ ...p, selected: false })))} className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-white/10 shadow-lg hover:scale-105">← Back to Grid</button>
+              <button 
+                onClick={() => setPages(pgs => pgs.map(p => ({ ...p, selected: false })))} 
+                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-white/10 shadow-lg hover:scale-105"
+              >
+                ← Back to Grid
+              </button>
+
+              {/* Page Navigation Controls */}
+              <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white">
+                <button 
+                  onClick={handlePrevPage} 
+                  disabled={selectedIndex === 0}
+                  className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold disabled:opacity-30 transition-all"
+                >
+                  ◀ Prev
+                </button>
+                <span className="text-xs font-bold px-2">
+                  Page {selectedIndex + 1} of {pages.length}
+                </span>
+                <button 
+                  onClick={handleNextPage} 
+                  disabled={selectedIndex === pages.length - 1}
+                  className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold disabled:opacity-30 transition-all"
+                >
+                  Next ▶
+                </button>
+              </div>
             </div>
             
+            {/* PDF Page Viewer Area */}
             <div className="flex-1 overflow-auto flex justify-center items-start pt-24 pb-12 px-8 custom-scrollbar relative">
               <div 
                 className="relative inline-block select-none shadow-[0_0_50px_rgba(0,0,0,0.4)] rounded-md border border-gray-700 bg-white"
@@ -378,6 +420,7 @@ export default function CanvasBoard() {
             </div>
           </div>
 
+          {/* Right Side Wide Chat Panel */}
           <div className="w-[500px] xl:w-[550px] h-full bg-white shadow-2xl flex flex-col rounded-l-3xl overflow-hidden border-l border-white/20 animate-in slide-in-from-right duration-500">
             <div className="p-5 border-b bg-gradient-to-r from-blue-50 to-white font-bold text-blue-800 flex items-center gap-3 shadow-sm z-10">
               <div className="bg-blue-100 p-2 rounded-lg"><span className="text-xl">💬</span></div>
