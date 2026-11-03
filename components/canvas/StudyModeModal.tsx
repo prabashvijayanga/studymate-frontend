@@ -46,9 +46,8 @@ export default function StudyModeModal({
   const [selectionCurrent, setSelectionCurrent] = useState({ x: 0, y: 0 });
   
   // --- RESIZABLE PANEL STATES ---
-  // Desktop width (px) & Mobile height (px)
   const [desktopChatWidth, setDesktopChatWidth] = useState<number>(550);
-  const [mobileChatHeight, setMobileChatHeight] = useState<number>(350); // initial height on mobile
+  const [mobileChatHeight, setMobileChatHeight] = useState<number>(350);
   const [isResizingDesktop, setIsResizingDesktop] = useState(false);
   const [isResizingMobile, setIsResizingMobile] = useState(false);
 
@@ -63,21 +62,19 @@ export default function StudyModeModal({
   };
 
   // --- MOBILE RESIZING HANDLERS ---
-  const startResizingMobile = (e: React.TouchEvent | React.MouseEvent) => {
+  const startResizingMobile = () => {
     setIsResizingMobile(true);
   };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizingDesktop) {
-        // Calculate new width from right edge of screen
         const newWidth = window.innerWidth - e.clientX;
         if (newWidth > 350 && newWidth < window.innerWidth - 400) {
           setDesktopChatWidth(newWidth);
         }
       }
       if (isResizingMobile) {
-        // Calculate new height from bottom of screen
         const newHeight = window.innerHeight - e.clientY;
         if (newHeight > 150 && newHeight < window.innerHeight - 150) {
           setMobileChatHeight(newHeight);
@@ -237,7 +234,7 @@ export default function StudyModeModal({
         </div>
       </div>
 
-      {/* --- DESKTOP RESIZE HANDLE (VISIBLE ONLY ON LG+ SCREENS) --- */}
+      {/* --- DESKTOP RESIZE HANDLE --- */}
       <div 
         onMouseDown={startResizingDesktop}
         className="hidden lg:flex w-2 bg-slate-800 hover:bg-cyan-500/55 cursor-col-resize items-center justify-center transition-colors z-30"
@@ -248,26 +245,18 @@ export default function StudyModeModal({
 
       {/* Right Side: Fully Responsive & Resizable AI Chat Panel */}
       <div 
-        style={{
-          width: '100%',
-          // Dynamic styles based on screen size
-        }}
         className="lg:h-full bg-slate-900 shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none overflow-hidden border-t lg:border-t-0 border-slate-800 z-30 transition-all duration-75"
-        // Applying inline style for custom desktop width and mobile height
-        css-props={undefined}
       >
-        {/* We use inner wrapper to bind responsive styles cleanly */}
         <div 
           className="flex flex-col h-full w-full bg-slate-900"
           style={{
-            // For desktop, apply dynamic width; for mobile, apply dynamic height
             ...(typeof window !== 'undefined' && window.innerWidth >= 1024 
               ? { width: `${desktopChatWidth}px`, height: '100%' } 
               : { height: `${mobileChatHeight}px`, width: '100%' }
             )
           }}
         >
-          {/* --- MOBILE RESIZE HANDLE (TOP BAR OF MOBILE CHAT) --- */}
+          {/* --- MOBILE RESIZE HANDLE --- */}
           <div 
             onMouseDown={startResizingMobile}
             onTouchStart={startResizingMobile}
