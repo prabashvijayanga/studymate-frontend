@@ -87,11 +87,6 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="w-full text-center py-6 text-slate-500 text-xs border-t border-slate-900/80 z-10">
-        &copy; 2026 MUSPARA AI. Built with precision for top-tier academic performance.
-      </footer>
     </main>
   );
 }
