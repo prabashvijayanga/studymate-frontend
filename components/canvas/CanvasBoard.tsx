@@ -237,6 +237,7 @@ export default function CanvasBoard() {
   return (
     <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
       
+      {/* Top Header Component */}
       <Header 
         onUploadClick={() => setIsModalOpen(true)}
         onGenerateGuideClick={handleGenerateConceptWeb}
@@ -244,15 +245,15 @@ export default function CanvasBoard() {
         isActionDisabled={isProcessing || pages.length === 0}
       />
 
-      {/* Main Document Grid View */}
-      <div className="flex-1 w-full h-full overflow-y-auto bg-gray-100/50 custom-scrollbar p-8">
+      {/* Main Document Grid View Container */}
+      <div className="flex-1 w-full h-full overflow-y-auto bg-gray-100/50 custom-scrollbar p-4 md:p-8">
         {pages.length === 0 ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
             <span className="text-6xl mb-4">📄</span>
             <h2 className="text-2xl font-bold text-gray-600">No Document Uploaded</h2>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 max-w-[1800px] mx-auto pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10 max-w-[1800px] mx-auto pb-20">
             {pages.map((page, index) => {
               const difficultyColor = 
                 page.difficulty?.level === 'Hard' ? 'bg-red-50 text-red-700 border-red-300' :
@@ -264,7 +265,7 @@ export default function CanvasBoard() {
               return (
                 <div key={page.id} onClick={() => setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === index })))} className={`group bg-white p-5 rounded-3xl shadow-md hover:shadow-2xl border-2 border-transparent transition-all duration-300 cursor-pointer flex flex-col items-center animate-in fade-in zoom-in-95 relative ${borderGlow}`}>
                   
-                  {/* Difficulty Badge */}
+                  {/* Page Difficulty Badge */}
                   {page.difficulty && (
                     <div title={page.difficulty.reason} className={`absolute -top-4 right-4 px-4 py-1.5 rounded-full text-xs font-bold border shadow-sm flex items-center gap-1 z-10 ${difficultyColor}`}>
                       {page.difficulty.level === 'Hard' ? '🔥 Hard' : page.difficulty.level === 'Medium' ? '⚡ Medium' : '🌱 Easy'}
@@ -276,7 +277,7 @@ export default function CanvasBoard() {
                   <div className="relative w-full rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
                     <img src={page.imageUrl} alt={page.label} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
                     
-                    {/* Hover popup message for Open Study Mode */}
+                    {/* Hover Overlay for Study Mode */}
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full text-blue-700 font-bold text-sm shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all flex items-center gap-2">
                         <span>🔍</span> Open Study Mode
@@ -298,7 +299,7 @@ export default function CanvasBoard() {
               <span className="text-3xl">🕸️</span> AI Concept Web & Smart Notes
             </h2>
             
-            {/* Download Notes & Close Buttons */}
+            {/* Actions: Download & Close */}
             <div className="flex items-center gap-4">
               <button 
                 onClick={handleDownloadNotes} 
@@ -361,51 +362,53 @@ export default function CanvasBoard() {
         </div>
       )}
 
-      {/* --- FULL-SCREEN INTERACTIVE STUDY MODE (MAGIC WAND & PREV/NEXT NAVIGATION) --- */}
+      {/* --- FULL-SCREEN INTERACTIVE STUDY MODE (MAGIC WAND & WIDE RESPONSIVE CHAT) --- */}
       {selectedPage && (
-        <div className="fixed inset-0 z-50 flex bg-gray-900/95 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
-          <div className="flex-1 h-full relative flex flex-col">
+        <div className="fixed inset-0 z-50 flex flex-col lg:flex-row bg-gray-900/95 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
+          
+          {/* Left Side: PDF Page Viewer & Navigation Area */}
+          <div className="flex-1 h-full relative flex flex-col overflow-hidden">
             
-            {/* Top Bar with Back to Grid & Previous/Next Page Navigation */}
-            <div className="flex justify-between items-center p-6 absolute top-0 w-full z-10 bg-gradient-to-b from-gray-900/80 to-transparent">
+            {/* Top Navigation Bar: Back Button & Page Controls */}
+            <div className="flex justify-between items-center p-4 md:p-6 absolute top-0 w-full z-10 bg-gradient-to-b from-gray-900/80 to-transparent">
               <button 
                 onClick={() => setPages(pgs => pgs.map(p => ({ ...p, selected: false })))} 
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-white/10 shadow-lg hover:scale-105"
+                className="px-4 py-2 md:px-5 md:py-2.5 bg-white/10 hover:bg-white/25 text-white rounded-full font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-white/10 shadow-lg hover:scale-105 text-xs md:text-sm"
               >
                 ← Back to Grid
               </button>
 
-              {/* Page Navigation Controls */}
-              <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white">
+              {/* Previous / Next Page Switcher */}
+              <div className="flex items-center gap-2 md:gap-3 bg-black/40 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/10 text-white">
                 <button 
                   onClick={handlePrevPage} 
                   disabled={selectedIndex === 0}
-                  className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold disabled:opacity-30 transition-all"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs md:text-sm font-semibold disabled:opacity-30 transition-all"
                 >
                   ◀ Prev
                 </button>
-                <span className="text-xs font-bold px-2">
+                <span className="text-[10px] md:text-xs font-bold px-1 md:px-2">
                   Page {selectedIndex + 1} of {pages.length}
                 </span>
                 <button 
                   onClick={handleNextPage} 
                   disabled={selectedIndex === pages.length - 1}
-                  className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold disabled:opacity-30 transition-all"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs md:text-sm font-semibold disabled:opacity-30 transition-all"
                 >
                   Next ▶
                 </button>
               </div>
             </div>
             
-            {/* PDF Page Viewer Area */}
-            <div className="flex-1 overflow-auto flex justify-center items-start pt-24 pb-12 px-8 custom-scrollbar relative">
+            {/* Scrollable Image Canvas for Magic Wand */}
+            <div className="flex-1 overflow-auto flex justify-center items-start pt-24 pb-20 px-4 md:px-8 custom-scrollbar relative">
               <div 
                 className="relative inline-block select-none shadow-[0_0_50px_rgba(0,0,0,0.4)] rounded-md border border-gray-700 bg-white"
                 onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
               >
                 <img 
                   ref={imgRef} src={selectedPage.imageUrl} alt={selectedPage.label} draggable={false}
-                  className={`max-w-4xl h-auto rounded-md transition-all ${isMagicWandActive ? 'cursor-crosshair' : 'cursor-default'}`}
+                  className={`max-w-full lg:max-w-4xl h-auto rounded-md transition-all ${isMagicWandActive ? 'cursor-crosshair' : 'cursor-default'}`}
                 />
                 {isSelecting && (
                   <div className="absolute border-2 border-purple-500 bg-purple-500/30 pointer-events-none"
@@ -414,28 +417,33 @@ export default function CanvasBoard() {
                 )}
               </div>
               
-              <button onClick={() => setIsMagicWandActive(!isMagicWandActive)} className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-2xl transition-all flex items-center gap-2 z-20 ${isMagicWandActive ? 'bg-purple-600 text-white animate-pulse ring-4 ring-purple-400/50' : 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'}`}>
-                <span className="text-xl">🪄</span> {isMagicWandActive ? "Drag a Box to Extract..." : "Enable Magic Wand"}
+              {/* Magic Wand Toggle Button */}
+              <button onClick={() => setIsMagicWandActive(!isMagicWandActive)} className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold shadow-2xl transition-all flex items-center gap-2 z-20 text-xs md:text-sm ${isMagicWandActive ? 'bg-purple-600 text-white animate-pulse ring-4 ring-purple-400/50' : 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'}`}>
+                <span className="text-lg md:text-xl">🪄</span> {isMagicWandActive ? "Drag a Box to Extract..." : "Enable Magic Wand"}
               </button>
             </div>
           </div>
 
-          {/* Right Side Wide Chat Panel */}
-          <div className="w-[500px] xl:w-[550px] h-full bg-white shadow-2xl flex flex-col rounded-l-3xl overflow-hidden border-l border-white/20 animate-in slide-in-from-right duration-500">
-            <div className="p-5 border-b bg-gradient-to-r from-blue-50 to-white font-bold text-blue-800 flex items-center gap-3 shadow-sm z-10">
-              <div className="bg-blue-100 p-2 rounded-lg"><span className="text-xl">💬</span></div>
+          {/* Right Side: Fully Wide & Responsive AI Chat Panel */}
+          {/* Note: You can customize the chat width below (e.g., w-[500px] lg:w-[600px] xl:w-[650px] 2xl:w-[700px]) */}
+          <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[650px] h-[50vh] lg:h-full bg-white shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl overflow-hidden border-t lg:border-t-0 lg:border-l border-white/20 animate-in slide-in-from-right duration-500 z-30">
+            
+            {/* Chat Header */}
+            <div className="p-4 md:p-5 border-b bg-gradient-to-r from-blue-50 to-white font-bold text-blue-800 flex items-center gap-3 shadow-sm z-10">
+              <div className="bg-blue-100 p-2 rounded-lg"><span className="text-lg md:text-xl">💬</span></div>
               <div>
-                <div className="text-xs text-blue-500 uppercase tracking-wider font-semibold">AI Assistant</div>
-                <div className="text-base text-gray-800">Muse Spark & SAM 3.1</div>
+                <div className="text-[10px] md:text-xs text-blue-500 uppercase tracking-wider font-semibold">AI Assistant</div>
+                <div className="text-sm md:text-base text-gray-800">Muse Spark & SAM 3.1</div>
               </div>
             </div>
             
-            <div className="flex-1 p-6 overflow-y-auto flex flex-col bg-gray-50/50">
+            {/* Messages Box */}
+            <div className="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col bg-gray-50/50">
               {chatMessages.length === 0 && (
-                <div className="text-gray-500 text-sm text-center mt-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mx-auto w-full max-w-[90%]">
-                  <span className="text-4xl block mb-4">👋</span>
-                  <h3 className="font-bold text-gray-800 text-lg mb-1">Interactive Study Mode</h3>
-                  <div className="text-left bg-blue-50/50 p-4 rounded-xl text-xs text-gray-600 border border-blue-100 mt-4">
+                <div className="text-gray-500 text-sm text-center mt-6 md:mt-10 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 mx-auto w-full max-w-[95%]">
+                  <span className="text-3xl md:text-4xl block mb-3">👋</span>
+                  <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Interactive Study Mode</h3>
+                  <div className="text-left bg-blue-50/50 p-3 md:p-4 rounded-xl text-xs text-gray-600 border border-blue-100 mt-3 md:mt-4">
                     <ul className="space-y-2">
                       <li className="flex gap-2"><span>🪄</span> Click Magic Wand and <b>Drag</b> to select</li>
                       <li className="flex gap-2"><span>✨</span> Type to ask anything about this page</li>
@@ -449,22 +457,37 @@ export default function CanvasBoard() {
                 ))}
               </div>
               {isChatting && (
-                <div className="flex items-center gap-2 text-blue-500 text-sm font-medium animate-pulse ml-2 mt-4">
+                <div className="flex items-center gap-2 text-blue-500 text-xs md:text-sm font-medium animate-pulse ml-2 mt-4">
                   <span className="ml-2">AI is processing...</span>
                 </div>
               )}
             </div>
             
-            <div className="p-5 border-t bg-white z-10 shadow-sm">
+            {/* Chat Input Bar */}
+            <div className="p-3 md:p-5 border-t bg-white z-10 shadow-sm">
               <div className="flex gap-2 relative">
-                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ask a question..." className="flex-1 px-5 py-4 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm" />
-                <button onClick={handleSendMessage} disabled={isChatting || !chatInput.trim()} className="px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 font-semibold text-sm">Send</button>
+                <input 
+                  type="text" 
+                  value={chatInput} 
+                  onChange={(e) => setChatInput(e.target.value)} 
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} 
+                  placeholder="Ask a question..." 
+                  className="flex-1 px-4 py-3 md:px-5 md:py-4 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-xs md:text-sm" 
+                />
+                <button 
+                  onClick={handleSendMessage} 
+                  disabled={isChatting || !chatInput.trim()} 
+                  className="px-5 md:px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 font-semibold text-xs md:text-sm transition-all"
+                >
+                  Send
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* PDF Upload Modal Component */}
       <UploadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onUploadSuccess={handleUploadSuccess} />
     </div>
   );
