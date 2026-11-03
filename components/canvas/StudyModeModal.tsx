@@ -45,6 +45,9 @@ export default function StudyModeModal({
   const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
   const [selectionCurrent, setSelectionCurrent] = useState({ x: 0, y: 0 });
   
+  // --- SPATIAL EXTRACTION LOADING STATE ---
+  const [isSpatialAnalyzing, setIsSpatialAnalyzing] = useState(false);
+
   // --- SAFE RESIZABLE PANEL STATES ---
   const [desktopChatWidth, setDesktopChatWidth] = useState<number>(550);
   const [mobileChatHeight, setMobileChatHeight] = useState<number>(350);
@@ -140,6 +143,9 @@ export default function StudyModeModal({
 
     setChatMessages(prev => [...prev, { role: 'user', text: `🪄 Selected custom area for spatial analysis.` }]);
     
+    // Turn on loading indicator for spatial extraction
+    setIsSpatialAnalyzing(true);
+    
     try {
       const formData = new FormData();
       formData.append("image_url", selectedPage.imageUrl);
@@ -154,6 +160,9 @@ export default function StudyModeModal({
       setIsMagicWandActive(false); 
     } catch (error) {
       setChatMessages(prev => [...prev, { role: 'ai', text: "Failed to connect to backend server for spatial extraction." }]);
+    } finally {
+      // Turn off loading indicator
+      setIsSpatialAnalyzing(false);
     }
   };
 
@@ -286,7 +295,17 @@ export default function StudyModeModal({
                 <ChatMessage key={idx} role={msg.role} content={msg.text} />
               ))}
             </div>
-            {isChatting && (
+
+            {/* --- SPATIAL EXTRACTION LOADING INDICATOR --- */}
+            {isSpatialAnalyzing && (
+              <div className="flex items-center gap-3 bg-cyan-500/10 border border-cyan-500/30 p-3 rounded-2xl text-cyan-300 text-xs font-medium animate-pulse my-3 shadow-md">
+                <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <span>✨ MUSPARA AI Spatial Vision is analyzing your diagram...</span>
+              </div>
+            )}
+
+            {/* General Chat Loading Indicator */}
+            {isChatting && !isSpatialAnalyzing && (
               <div className="flex items-center gap-2 text-cyan-400 text-xs font-medium animate-pulse ml-2 mt-4">
                 <span>MUSPARA AI is processing...</span>
               </div>
@@ -306,7 +325,7 @@ export default function StudyModeModal({
               />
               <button 
                 onClick={handleSendMessage} 
-                disabled={isChatting || !chatInput.trim()} 
+                disabled={isChatting || isSpatialAnalyzing || !chatInput.trim()} 
                 className="px-5 bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 rounded-xl hover:from-cyan-400 hover:to-emerald-400 disabled:opacity-40 font-extrabold text-xs transition-all shadow-md"
               >
                 Send

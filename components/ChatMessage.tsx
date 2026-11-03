@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -32,7 +34,7 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
       )}
 
       {/* ================= MESSAGE BUBBLE ================= */}
-      <div className={`relative max-w-[85%] px-5 py-4 shadow-sm ${
+      <div className={`relative max-w-[85%] sm:max-w-[90%] px-5 py-4 shadow-sm overflow-hidden ${
         isAI 
           // Premium Glassmorphism UI for AI Responses
           ? 'bg-white/95 backdrop-blur-md border border-gray-100/80 rounded-2xl rounded-tl-sm text-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.03)]' 
@@ -53,9 +55,10 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
              =========================================================
              ULTRA-PREMIUM TYPOGRAPHY & GRAPHIC ELEMENTS FOR AI REPLY
              =========================================================
-             This completely transforms standard Markdown into beautiful, SaaS-grade UI components
+             Wrapped inside an overflow-x-auto container so tables never bleed out
           */
-          <div className="prose prose-sm md:prose-base max-w-none 
+          <div className="overflow-x-auto w-full custom-scrollbar">
+            <div className="prose prose-sm md:prose-base max-w-none break-words
                           /* Paragraphs & Text */
                           prose-p:leading-relaxed prose-p:mb-4 prose-p:text-gray-700
                           prose-strong:text-blue-900 prose-strong:font-bold prose-strong:bg-blue-50 prose-strong:px-1 prose-strong:rounded
@@ -80,13 +83,14 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
                           
                           prose-td:p-3 prose-td:border-t prose-td:border-gray-100 prose-td:text-gray-700
                           hover:prose-tr:bg-blue-50/30 transition-colors">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {content}
-            </ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+            </div>
           </div>
         ) : (
           /* Standard text rendering for user inputs */
-          <div className="text-sm md:text-base whitespace-pre-wrap leading-relaxed font-medium">
+          <div className="text-sm md:text-base whitespace-pre-wrap leading-relaxed font-medium break-words">
             {content}
           </div>
         )}
