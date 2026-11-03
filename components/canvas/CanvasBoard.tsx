@@ -6,8 +6,10 @@ import UploadModal from '../upload-modal';
 import Header from '../layout/Header';
 import ChatMessage from '../ChatMessage';
 
+// Ensure the backend URL is formatted correctly for direct client-to-server API calls
 const rawBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 const BACKEND_BASE_URL = rawBaseUrl.replace(/\/$/, "");
+
 // --- TYPES ---
 interface PageNode {
   id: string;
@@ -54,6 +56,7 @@ export default function CanvasBoard() {
 
   // --- HANDLERS ---
   const handleUploadSuccess = (data: any) => {
+    // Map the backend data to our frontend state, appending the Render Base URL to the image paths
     const newPages: PageNode[] = data.nodes_data.map((node: any) => ({
       id: node.id,
       imageUrl: `${BACKEND_BASE_URL}${node.imageUrl}`,
@@ -67,12 +70,14 @@ export default function CanvasBoard() {
   const selectedIndex = pages.findIndex(p => p.selected);
   const selectedPage = selectedIndex !== -1 ? pages[selectedIndex] : undefined;
 
+  // Reset chat and wand tools when switching pages
   useEffect(() => {
     setChatMessages([]);
     setIsMagicWandActive(false);
     setIsSelecting(false);
   }, [selectedPage?.id]);
 
+  // Handle direct Chat API requests
   const handleSendMessage = async () => {
     if (!chatInput.trim() || !selectedPage) return;
     const userMsg = chatInput;
@@ -84,6 +89,8 @@ export default function CanvasBoard() {
       const formData = new FormData();
       formData.append("image_url", selectedPage.imageUrl);
       formData.append("message", userMsg);
+      
+      // Direct call to Render backend. Browser will wait regardless of Vercel timeouts.
       const response = await fetch(`${BACKEND_BASE_URL}/api/chat`, { method: "POST", body: formData });
       const result = await response.json();
       setChatMessages(prev => [...prev, { role: 'ai', text: result.reply }]);
@@ -121,7 +128,7 @@ export default function CanvasBoard() {
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
     
-    // Clamp values to prevent out-of-bounds API errors
+    // Clamp values to prevent out-of-bounds API errors (SAM extraction bounds)
     const realX1 = Math.max(0, Math.min(Math.round(x1 * scaleX), img.naturalWidth - 1));
     const realY1 = Math.max(0, Math.min(Math.round(y1 * scaleY), img.naturalHeight - 1));
     const realX2 = Math.max(0, Math.min(Math.round(x2 * scaleX), img.naturalWidth - 1));
@@ -138,6 +145,7 @@ export default function CanvasBoard() {
       formData.append("x2", realX2.toString());
       formData.append("y2", realY2.toString());
       
+      // Request SAM 3.1 extraction directly from Render
       const response = await fetch(`${BACKEND_BASE_URL}/api/magic-wand`, { method: "POST", body: formData });
       const result = await response.json();
       setChatMessages(prev => [...prev, { role: 'ai', text: result.reply }]);
@@ -155,6 +163,8 @@ export default function CanvasBoard() {
     setIsProcessing(true);
     try {
       const pageIds = pages.map(p => p.id);
+      // Direct call to Render for heavy knowledge graph extraction. 
+      // The browser handles this request, completely immune to the 10s Vercel limit.
       const response = await fetch(`${BACKEND_BASE_URL}/api/knowledge-graph`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -253,7 +263,7 @@ export default function CanvasBoard() {
                   <div className="relative w-full rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
                     <img src={page.imageUrl} alt={page.label} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
                     
-                    {/* RESTORED: The hover popup message for Open Study Mode */}
+                    {/* Hover popup message for Open Study Mode */}
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full text-blue-700 font-bold text-sm shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all flex items-center gap-2">
                         <span>🔍</span> Open Study Mode

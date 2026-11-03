@@ -1,7 +1,8 @@
+"use client"; 
+
 import React, { useState } from 'react';
 import { uploadPdfToBackend } from '../lib/api-client';
 
-// Define the properties this component will accept
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,7 +18,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
   // If the modal is not open, do not render anything
   if (!isOpen) return null;
 
-  // Function to handle when a user selects a file
+  // Function to handle when a user selects a file from their device
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
@@ -30,16 +31,16 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
     
     setIsUploading(true);
     try {
-      // Send the file to our FastAPI backend using the API client
+      // Send the file to our FastAPI backend directly from the browser
       const result = await uploadPdfToBackend(file);
       
-      // Pass the backend response (image URLs) back to the main page
+      // Pass the backend response (image URLs & data) back to CanvasBoard
       onUploadSuccess(result);
       
-      // Close the modal popup
+      // Close the modal popup upon success
       onClose();
     } catch (error) {
-      alert("Error uploading file. Please check if the backend is running.");
+      alert("Error uploading file. Please check if the backend is running and CORS is configured.");
     } finally {
       setIsUploading(false);
       setFile(null); // Reset the file input
