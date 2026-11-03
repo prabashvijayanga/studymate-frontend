@@ -236,13 +236,11 @@ export default function StudyModeModal({
       {/* Right Side: Fully Responsive & Resizable AI Chat Panel */}
       <div 
         className="lg:h-full bg-slate-900 shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none overflow-hidden border-t lg:border-t-0 border-slate-800 z-30 transition-all duration-75"
-        style={{
-          width: '100%',
-          ...(typeof window !== 'undefined' && window.innerWidth >= 1024 
+        style={
+          typeof window !== 'undefined' && window.innerWidth >= 1024 
             ? { width: `${desktopChatWidth}px` } 
-            : { height: `${mobileChatHeight}px` }
-          )
-        }}
+            : { height: `${mobileChatHeight}px`, width: '100%' }
+        }
       >
         <div className="flex flex-col h-full w-full bg-slate-900">
           {/* --- MOBILE RESIZE HANDLE --- */}
