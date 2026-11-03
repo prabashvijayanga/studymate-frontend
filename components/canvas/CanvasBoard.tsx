@@ -56,7 +56,7 @@ export default function CanvasBoard() {
 
   // --- HANDLERS ---
   const handleUploadSuccess = (data: any) => {
-    // Map the backend data to our frontend state, appending the Render Base URL to the image paths
+    // Map backend data to frontend state with Render Base URL
     const newPages: PageNode[] = data.nodes_data.map((node: any) => ({
       id: node.id,
       imageUrl: `${BACKEND_BASE_URL}${node.imageUrl}`,
@@ -77,7 +77,7 @@ export default function CanvasBoard() {
     setIsSelecting(false);
   }, [selectedPage?.id]);
 
-  // --- NAVIGATION HANDLERS FOR PREV / NEXT PAGES ---
+  // --- NAVIGATION HANDLERS ---
   const handlePrevPage = () => {
     if (selectedIndex > 0) {
       setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === selectedIndex - 1 })));
@@ -103,7 +103,6 @@ export default function CanvasBoard() {
       formData.append("image_url", selectedPage.imageUrl);
       formData.append("message", userMsg);
       
-      // Direct call to Render backend. Browser will wait regardless of Vercel timeouts.
       const response = await fetch(`${BACKEND_BASE_URL}/api/chat`, { method: "POST", body: formData });
       const result = await response.json();
       setChatMessages(prev => [...prev, { role: 'ai', text: result.reply }]);
@@ -141,7 +140,6 @@ export default function CanvasBoard() {
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
     
-    // Clamp values to prevent out-of-bounds API errors (SAM extraction bounds)
     const realX1 = Math.max(0, Math.min(Math.round(x1 * scaleX), img.naturalWidth - 1));
     const realY1 = Math.max(0, Math.min(Math.round(y1 * scaleY), img.naturalHeight - 1));
     const realX2 = Math.max(0, Math.min(Math.round(x2 * scaleX), img.naturalWidth - 1));
@@ -158,7 +156,6 @@ export default function CanvasBoard() {
       formData.append("x2", realX2.toString());
       formData.append("y2", realY2.toString());
       
-      // Request SAM 3.1 extraction directly from Render
       const response = await fetch(`${BACKEND_BASE_URL}/api/magic-wand`, { method: "POST", body: formData });
       const result = await response.json();
       setChatMessages(prev => [...prev, { role: 'ai', text: result.reply }]);
@@ -176,8 +173,6 @@ export default function CanvasBoard() {
     setIsProcessing(true);
     try {
       const pageIds = pages.map(p => p.id);
-      // Direct call to Render for heavy knowledge graph extraction. 
-      // The browser handles this request, completely immune to the 10s Vercel limit.
       const response = await fetch(`${BACKEND_BASE_URL}/api/knowledge-graph`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,18 +190,17 @@ export default function CanvasBoard() {
   };
 
   const isNodeConnected = (nodeId: string) => {
-    if (!hoveredNodeId) return true; // Show all normally if nothing hovered
-    if (hoveredNodeId === nodeId) return true; // The hovered node itself
-    // Check if it's connected via an edge
+    if (!hoveredNodeId) return true;
+    if (hoveredNodeId === nodeId) return true;
     return graphEdges.some(e => 
       (e.source === hoveredNodeId && e.target === nodeId) || 
       (e.target === hoveredNodeId && e.source === nodeId)
     );
   };
 
-  // --- DOWNLOAD NOTES FEATURE ---
+  // --- DOWNLOAD NOTES ---
   const handleDownloadNotes = () => {
-    let content = "# 🕸️ AI Concept Web & Smart Notes\n\n";
+    let content = "# 🕸️ MUSPARA AI - Concept Web & Smart Notes\n\n";
     
     graphNodes.forEach(node => {
       content += `## ${node.label}\n\n${node.memorable_note}\n\n`;
@@ -228,14 +222,14 @@ export default function CanvasBoard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "AI_Smart_Notes.md";
+    a.download = "MUSPARA_Smart_Notes.md";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   // --- RENDER ---
   return (
-    <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
+    <div className="w-full h-screen bg-slate-950 flex flex-col relative overflow-hidden text-slate-100">
       
       {/* Top Header Component */}
       <Header 
@@ -246,24 +240,25 @@ export default function CanvasBoard() {
       />
 
       {/* Main Document Grid View Container */}
-      <div className="flex-1 w-full h-full overflow-y-auto bg-gray-100/50 custom-scrollbar p-4 md:p-8">
+      <div className="flex-1 w-full h-full overflow-y-auto bg-slate-900/50 custom-scrollbar p-4 md:p-8">
         {pages.length === 0 ? (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
             <span className="text-6xl mb-4">📄</span>
-            <h2 className="text-2xl font-bold text-gray-600">No Document Uploaded</h2>
+            <h2 className="text-2xl font-bold text-slate-300">No Document Uploaded</h2>
+            <p className="text-xs text-slate-500 mt-2">Upload a PDF document to initialize spatial analysis.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10 max-w-[1800px] mx-auto pb-20">
             {pages.map((page, index) => {
               const difficultyColor = 
-                page.difficulty?.level === 'Hard' ? 'bg-red-50 text-red-700 border-red-300' :
-                page.difficulty?.level === 'Medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-300' :
-                'bg-green-50 text-green-700 border-green-300';
+                page.difficulty?.level === 'Hard' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' :
+                page.difficulty?.level === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
                 
-              const borderGlow = page.difficulty?.level === 'Hard' ? 'hover:border-red-400 hover:shadow-red-200' : 'hover:border-blue-400 hover:shadow-blue-200';
+              const borderGlow = page.difficulty?.level === 'Hard' ? 'hover:border-rose-500 hover:shadow-rose-500/20' : 'hover:border-cyan-500 hover:shadow-cyan-500/20';
 
               return (
-                <div key={page.id} onClick={() => setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === index })))} className={`group bg-white p-5 rounded-3xl shadow-md hover:shadow-2xl border-2 border-transparent transition-all duration-300 cursor-pointer flex flex-col items-center animate-in fade-in zoom-in-95 relative ${borderGlow}`}>
+                <div key={page.id} onClick={() => setPages(pgs => pgs.map((p, i) => ({ ...p, selected: i === index })))} className={`group bg-slate-900 p-5 rounded-3xl shadow-xl hover:shadow-2xl border border-slate-800 transition-all duration-300 cursor-pointer flex flex-col items-center relative ${borderGlow}`}>
                   
                   {/* Page Difficulty Badge */}
                   {page.difficulty && (
@@ -272,14 +267,14 @@ export default function CanvasBoard() {
                     </div>
                   )}
                   
-                  <span className="text-lg text-gray-800 font-extrabold mb-4 mt-2 tracking-wide text-center">{page.label}</span>
+                  <span className="text-sm text-slate-200 font-extrabold mb-4 mt-2 tracking-wide text-center">{page.label}</span>
                   
-                  <div className="relative w-full rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
+                  <div className="relative w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
                     <img src={page.imageUrl} alt={page.label} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
                     
                     {/* Hover Overlay for Study Mode */}
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full text-blue-700 font-bold text-sm shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all flex items-center gap-2">
+                    <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 px-6 py-3 rounded-full font-extrabold text-xs shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all flex items-center gap-2">
                         <span>🔍</span> Open Study Mode
                       </div>
                     </div>
@@ -293,23 +288,22 @@ export default function CanvasBoard() {
 
       {/* --- VISUAL CONCEPT WEB OVERLAY --- */}
       {isGraphOpen && (
-        <div className="fixed inset-0 z-[100] bg-gray-900/95 backdrop-blur-xl flex flex-col animate-in fade-in zoom-in-95 duration-300">
-          <div className="p-6 flex justify-between items-center border-b border-white/10">
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col animate-in fade-in zoom-in-95 duration-300">
+          <div className="p-6 flex justify-between items-center border-b border-slate-800">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <span className="text-3xl">🕸️</span> AI Concept Web & Smart Notes
+              <span className="text-3xl">🕸️</span> Concept Web & Smart Notes
             </h2>
             
-            {/* Actions: Download & Close */}
             <div className="flex items-center gap-4">
               <button 
                 onClick={handleDownloadNotes} 
-                className="px-5 py-2 bg-blue-500/20 text-blue-300 hover:bg-blue-500 hover:text-white rounded-full font-bold transition-all flex items-center gap-2 shadow-lg"
+                className="px-5 py-2.5 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 rounded-xl font-bold transition-all flex items-center gap-2 border border-cyan-500/20 text-xs"
               >
                 📥 Download Notes
               </button>
               <button 
                 onClick={() => setIsGraphOpen(false)} 
-                className="px-5 py-2 bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white rounded-full font-bold transition-all"
+                className="px-5 py-2.5 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl font-bold transition-all text-xs border border-rose-500/20"
               >
                 Close Web ✖
               </button>
@@ -318,7 +312,7 @@ export default function CanvasBoard() {
           
           <div className="flex-1 overflow-auto p-10 custom-scrollbar relative flex flex-wrap gap-8 justify-center content-start">
             {graphNodes.length === 0 ? (
-              <div className="text-white text-center mt-20 text-xl animate-pulse">Extracting Knowledge Graph...</div>
+              <div className="text-cyan-400 text-center mt-20 text-xl animate-pulse font-medium">Extracting Knowledge Graph...</div>
             ) : (
               graphNodes.map((node) => {
                 const connected = isNodeConnected(node.id);
@@ -327,26 +321,26 @@ export default function CanvasBoard() {
                     key={node.id}
                     onMouseEnter={() => setHoveredNodeId(node.id)}
                     onMouseLeave={() => setHoveredNodeId(null)}
-                    className={`w-[350px] bg-white rounded-3xl p-6 shadow-2xl transition-all duration-300 transform 
-                      ${connected ? 'scale-100 opacity-100 border-2 border-blue-400 shadow-blue-500/30' : 'scale-95 opacity-30 blur-[2px]'}
-                      ${hoveredNodeId === node.id ? 'scale-105 z-10 ring-4 ring-purple-500 shadow-purple-500/50' : 'z-0'}
+                    className={`w-[350px] bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl transition-all duration-300 transform 
+                      ${connected ? 'scale-100 opacity-100 border-cyan-500/50 shadow-cyan-500/10' : 'scale-95 opacity-30 blur-[2px]'}
+                      ${hoveredNodeId === node.id ? 'scale-105 z-10 ring-2 ring-emerald-400 shadow-emerald-500/20' : 'z-0'}
                     `}
                   >
-                    <div className="text-xl font-black text-gray-800 mb-3 border-b-2 border-gray-100 pb-2">{node.label}</div>
+                    <div className="text-lg font-black text-white mb-3 border-b border-slate-800 pb-2">{node.label}</div>
                     
-                    <div className="prose prose-sm text-gray-600 prose-strong:text-blue-700">
+                    <div className="prose prose-sm prose-invert text-slate-300 prose-strong:text-cyan-400">
                       <ReactMarkdown>{node.memorable_note}</ReactMarkdown>
                     </div>
 
                     {hoveredNodeId === node.id && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="text-xs font-bold text-purple-600 mb-2 uppercase tracking-wide">Connects To:</div>
+                      <div className="mt-4 pt-4 border-t border-slate-800">
+                        <div className="text-[10px] font-bold text-emerald-400 mb-2 uppercase tracking-wider">Connects To:</div>
                         <div className="flex flex-wrap gap-2">
                           {graphEdges.filter(e => e.source === node.id || e.target === node.id).map((e, idx) => {
                             const relatedNodeId = e.source === node.id ? e.target : e.source;
                             const relatedNode = graphNodes.find(n => n.id === relatedNodeId);
                             return (
-                              <span key={idx} className="bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded-md font-semibold border border-purple-200">
+                              <span key={idx} className="bg-emerald-500/10 text-emerald-300 text-[10px] px-2 py-1 rounded-md font-semibold border border-emerald-500/20">
                                 {e.relationship} ➔ {relatedNode?.label}
                               </span>
                             );
@@ -362,91 +356,88 @@ export default function CanvasBoard() {
         </div>
       )}
 
-      {/* --- FULL-SCREEN INTERACTIVE STUDY MODE (MAGIC WAND & WIDE RESPONSIVE CHAT) --- */}
+      {/* --- STUDY MODE (MAGIC WAND & WIDE CHAT PANEL) --- */}
       {selectedPage && (
-        <div className="fixed inset-0 z-50 flex flex-col lg:flex-row bg-gray-900/95 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex flex-col lg:flex-row bg-slate-950/95 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
           
-          {/* Left Side: PDF Page Viewer & Navigation Area */}
+          {/* Left Side: PDF Page Viewer & Navigation */}
           <div className="flex-1 h-full relative flex flex-col overflow-hidden">
             
-            {/* Top Navigation Bar: Back Button & Page Controls */}
-            <div className="flex justify-between items-center p-4 md:p-6 absolute top-0 w-full z-10 bg-gradient-to-b from-gray-900/80 to-transparent">
+            <div className="flex justify-between items-center p-4 md:p-6 absolute top-0 w-full z-10 bg-gradient-to-b from-slate-950/80 to-transparent">
               <button 
                 onClick={() => setPages(pgs => pgs.map(p => ({ ...p, selected: false })))} 
-                className="px-4 py-2 md:px-5 md:py-2.5 bg-white/10 hover:bg-white/25 text-white rounded-full font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-white/10 shadow-lg hover:scale-105 text-xs md:text-sm"
+                className="px-4 py-2 md:px-5 md:py-2.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 rounded-xl font-medium flex items-center gap-2 backdrop-blur-md transition-all border border-slate-800 shadow-lg text-xs"
               >
                 ← Back to Grid
               </button>
 
-              {/* Previous / Next Page Switcher */}
-              <div className="flex items-center gap-2 md:gap-3 bg-black/40 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/10 text-white">
+              <div className="flex items-center gap-2 md:gap-3 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-800 text-slate-200 shadow-lg">
                 <button 
                   onClick={handlePrevPage} 
                   disabled={selectedIndex === 0}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs md:text-sm font-semibold disabled:opacity-30 transition-all"
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-semibold disabled:opacity-30 transition-all"
                 >
                   ◀ Prev
                 </button>
-                <span className="text-[10px] md:text-xs font-bold px-1 md:px-2">
+                <span className="text-xs font-bold px-2 text-cyan-400">
                   Page {selectedIndex + 1} of {pages.length}
                 </span>
                 <button 
                   onClick={handleNextPage} 
                   disabled={selectedIndex === pages.length - 1}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs md:text-sm font-semibold disabled:opacity-30 transition-all"
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-semibold disabled:opacity-30 transition-all"
                 >
                   Next ▶
                 </button>
               </div>
             </div>
             
-            {/* Scrollable Image Canvas for Magic Wand */}
+            {/* Scrollable Image Canvas */}
             <div className="flex-1 overflow-auto flex justify-center items-start pt-24 pb-20 px-4 md:px-8 custom-scrollbar relative">
               <div 
-                className="relative inline-block select-none shadow-[0_0_50px_rgba(0,0,0,0.4)] rounded-md border border-gray-700 bg-white"
+                className="relative inline-block select-none shadow-2xl rounded-2xl border border-slate-800 bg-slate-900"
                 onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
               >
                 <img 
                   ref={imgRef} src={selectedPage.imageUrl} alt={selectedPage.label} draggable={false}
-                  className={`max-w-full lg:max-w-4xl h-auto rounded-md transition-all ${isMagicWandActive ? 'cursor-crosshair' : 'cursor-default'}`}
+                  className={`max-w-full lg:max-w-4xl h-auto rounded-2xl transition-all ${isMagicWandActive ? 'cursor-crosshair' : 'cursor-default'}`}
                 />
                 {isSelecting && (
-                  <div className="absolute border-2 border-purple-500 bg-purple-500/30 pointer-events-none"
+                  <div className="absolute border-2 border-cyan-400 bg-cyan-500/20 pointer-events-none rounded-md"
                     style={{ left: Math.min(selectionStart.x, selectionCurrent.x), top: Math.min(selectionStart.y, selectionCurrent.y), width: Math.abs(selectionCurrent.x - selectionStart.x), height: Math.abs(selectionCurrent.y - selectionStart.y) }}
                   />
                 )}
               </div>
               
               {/* Magic Wand Toggle Button */}
-              <button onClick={() => setIsMagicWandActive(!isMagicWandActive)} className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold shadow-2xl transition-all flex items-center gap-2 z-20 text-xs md:text-sm ${isMagicWandActive ? 'bg-purple-600 text-white animate-pulse ring-4 ring-purple-400/50' : 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'}`}>
-                <span className="text-lg md:text-xl">🪄</span> {isMagicWandActive ? "Drag a Box to Extract..." : "Enable Magic Wand"}
+              <button onClick={() => setIsMagicWandActive(!isMagicWandActive)} className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-2 z-20 text-xs ${isMagicWandActive ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 animate-pulse ring-4 ring-cyan-500/30' : 'bg-slate-900 text-slate-200 border border-slate-700 hover:bg-slate-800'}`}>
+                <span className="text-lg">🪄</span> {isMagicWandActive ? "Drag a Box to Extract..." : "Enable Spatial Magic Wand"}
               </button>
             </div>
           </div>
 
           {/* Right Side: Fully Wide & Responsive AI Chat Panel */}
-          {/* Note: You can customize the chat width below (e.g., w-[500px] lg:w-[600px] xl:w-[650px] 2xl:w-[700px]) */}
-          <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[650px] h-[50vh] lg:h-full bg-white shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl overflow-hidden border-t lg:border-t-0 lg:border-l border-white/20 animate-in slide-in-from-right duration-500 z-30">
+          <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[650px] h-[50vh] lg:h-full bg-slate-900 shadow-2xl flex flex-col rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl overflow-hidden border-t lg:border-t-0 lg:border-l border-slate-800 z-30">
             
             {/* Chat Header */}
-            <div className="p-4 md:p-5 border-b bg-gradient-to-r from-blue-50 to-white font-bold text-blue-800 flex items-center gap-3 shadow-sm z-10">
-              <div className="bg-blue-100 p-2 rounded-lg"><span className="text-lg md:text-xl">💬</span></div>
+            <div className="p-4 md:p-5 border-b border-slate-800 bg-slate-900/80 font-bold text-slate-100 flex items-center gap-3 shadow-sm z-10">
+              <div className="bg-cyan-500/10 border border-cyan-500/20 p-2 rounded-xl text-cyan-400"><span className="text-xl">💬</span></div>
               <div>
-                <div className="text-[10px] md:text-xs text-blue-500 uppercase tracking-wider font-semibold">AI Assistant</div>
-                <div className="text-sm md:text-base text-gray-800">Muse Spark & SAM 3.1</div>
+                <div className="text-[10px] text-cyan-400 uppercase tracking-wider font-bold">AI Assistant</div>
+                <div className="text-sm text-slate-200">MUSPARA AI Spatial Vision</div>
               </div>
             </div>
             
             {/* Messages Box */}
-            <div className="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col bg-gray-50/50">
+            <div className="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col bg-slate-950/50">
               {chatMessages.length === 0 && (
-                <div className="text-gray-500 text-sm text-center mt-6 md:mt-10 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 mx-auto w-full max-w-[95%]">
-                  <span className="text-3xl md:text-4xl block mb-3">👋</span>
-                  <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Interactive Study Mode</h3>
-                  <div className="text-left bg-blue-50/50 p-3 md:p-4 rounded-xl text-xs text-gray-600 border border-blue-100 mt-3 md:mt-4">
+                <div className="text-slate-400 text-sm text-center mt-6 md:mt-10 bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 mx-auto w-full max-w-[95%]">
+                  <span className="text-4xl block mb-3">👋</span>
+                  <h3 className="font-bold text-white text-base mb-1">Interactive Study Mode</h3>
+                  <div className="text-left bg-cyan-500/5 p-4 rounded-xl text-xs text-slate-300 border border-cyan-500/15 mt-4">
                     <ul className="space-y-2">
-                      <li className="flex gap-2"><span>🪄</span> Click Magic Wand and <b>Drag</b> to select</li>
-                      <li className="flex gap-2"><span>✨</span> Type to ask anything about this page</li>
+                      <li className="flex gap-2 text-cyan-300"><span>🪄</span> Click Magic Wand and <b>Drag</b> to extract diagrams</li>
+                      <li className="flex gap-2 text-emerald-300"><span>✨</span> Ask questions about this specific page</li>
                     </ul>
                   </div>
                 </div>
@@ -457,27 +448,27 @@ export default function CanvasBoard() {
                 ))}
               </div>
               {isChatting && (
-                <div className="flex items-center gap-2 text-blue-500 text-xs md:text-sm font-medium animate-pulse ml-2 mt-4">
-                  <span className="ml-2">AI is processing...</span>
+                <div className="flex items-center gap-2 text-cyan-400 text-xs font-medium animate-pulse ml-2 mt-4">
+                  <span>MUSPARA AI is processing...</span>
                 </div>
               )}
             </div>
             
             {/* Chat Input Bar */}
-            <div className="p-3 md:p-5 border-t bg-white z-10 shadow-sm">
+            <div className="p-4 border-t border-slate-800 bg-slate-900 z-10 shadow-sm">
               <div className="flex gap-2 relative">
                 <input 
                   type="text" 
                   value={chatInput} 
                   onChange={(e) => setChatInput(e.target.value)} 
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} 
-                  placeholder="Ask a question..." 
-                  className="flex-1 px-4 py-3 md:px-5 md:py-4 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-xs md:text-sm" 
+                  placeholder="Ask a question about this page..." 
+                  className="flex-1 px-4 py-3 border border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 bg-slate-950 text-xs text-slate-100 placeholder-slate-500" 
                 />
                 <button 
                   onClick={handleSendMessage} 
                   disabled={isChatting || !chatInput.trim()} 
-                  className="px-5 md:px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 font-semibold text-xs md:text-sm transition-all"
+                  className="px-6 bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 rounded-xl hover:from-cyan-400 hover:to-emerald-400 disabled:opacity-40 font-extrabold text-xs transition-all shadow-md"
                 >
                   Send
                 </button>
@@ -487,7 +478,7 @@ export default function CanvasBoard() {
         </div>
       )}
 
-      {/* PDF Upload Modal Component */}
+      {/* Upload Modal */}
       <UploadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onUploadSuccess={handleUploadSuccess} />
     </div>
   );
